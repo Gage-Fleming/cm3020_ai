@@ -2,6 +2,7 @@ import unittest
 import creature
 import pybullet as p
 
+
 class TestCreature(unittest.TestCase):
     def testCreatExists(self):
         self.assertIsNotNone(creature.Creature)
@@ -31,7 +32,6 @@ class TestCreature(unittest.TestCase):
         cid = p.loadURDF('test.urdf')
         self.assertIsNotNone(cid)
 
-      
     def testMotor(self):
         m = creature.Motor(0.1, 0.5, 0.5)
         self.assertIsNotNone(m)
@@ -43,9 +43,9 @@ class TestCreature(unittest.TestCase):
     def testMotorVal2(self):
         m = creature.Motor(0.6, 0.5, 0.5)
         m.get_output()
-        m.get_output()     
+        m.get_output()
         self.assertGreater(m.get_output(), 0)
-    
+
     def testDist(self):
         c = creature.Creature(3)
         c.update_position((0, 0, 0))
@@ -53,6 +53,6 @@ class TestCreature(unittest.TestCase):
         c.update_position((1, 1, 1))
         d2 = c.get_distance_travelled()
         self.assertGreater(d2, d1)
-        
+
 
 unittest.main()

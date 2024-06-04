@@ -1,11 +1,12 @@
-import os 
+import os
 import genome
 import sys
 import creature
 import pybullet as p
-import time 
+import time
 import random
 import numpy as np
+
 
 ## ... usual starter code to create a sim and floor
 def main(csv_file):
@@ -17,8 +18,7 @@ def main(csv_file):
     plane_shape = p.createCollisionShape(p.GEOM_PLANE)
     floor = p.createMultiBody(plane_shape, plane_shape)
     p.setGravity(0, 0, -10)
-#   p.setRealTimeSimulation(1)
-
+    #   p.setRealTimeSimulation(1)
 
     # generate a random creature
     cr = creature.Creature(gene_count=1)
@@ -34,10 +34,10 @@ def main(csv_file):
 
     start_pos, orn = p.getBasePositionAndOrientation(rob1)
 
-    # iterate 
+    # iterate
     elapsed_time = 0
-    wait_time = 1.0/240 # seconds
-    total_time = 30 # seconds
+    wait_time = 1.0 / 240  # seconds
+    total_time = 30  # seconds
     step = 0
     while True:
         p.stepSimulation()
@@ -48,15 +48,15 @@ def main(csv_file):
             for jid in range(p.getNumJoints(rob1)):
                 mode = p.VELOCITY_CONTROL
                 vel = motors[jid].get_output()
-                p.setJointMotorControl2(rob1, 
-                            jid,  
-                            controlMode=mode, 
-                            targetVelocity=vel)
+                p.setJointMotorControl2(rob1,
+                                        jid,
+                                        controlMode=mode,
+                                        targetVelocity=vel)
             new_pos, orn = p.getBasePositionAndOrientation(rob1)
-            #print(new_pos)
+            # print(new_pos)
             dist_moved = np.linalg.norm(np.asarray(start_pos) - np.asarray(new_pos))
             print(dist_moved)
-        #time.sleep(wait_time)
+        # time.sleep(wait_time)
         elapsed_time += wait_time
         if elapsed_time > total_time:
             break
@@ -64,8 +64,6 @@ def main(csv_file):
     print("TOTAL DISTANCE MOVED:", dist_moved)
 
 
-
 if __name__ == "__main__":
     assert len(sys.argv) == 2, "Usage: python playback_test.py csv_filename"
     main(sys.argv[1])
-
