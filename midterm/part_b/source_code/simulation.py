@@ -51,12 +51,12 @@ class Simulation:
                                     physicsClientId=self.physicsClientId)
 
     # You can add this to the Simulation class:
-    def eval_population(self, pop, iterations):
+    def eval_population(self, pop):
         for cr in pop.creatures:
             self.run_creature(cr, 2400)
 
 
-class ThreadedSim():
+class ThreadedSim:
     def __init__(self, pool_size):
         self.sims = [Simulation(i) for i in range(pool_size)]
 

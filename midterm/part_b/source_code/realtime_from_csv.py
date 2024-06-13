@@ -4,11 +4,10 @@ import sys
 import creature
 import pybullet as p
 import time
-import random
 import numpy as np
 
 
-## ... usual starter code to create a sim and floor
+# ... usual starter code to create a sim and floor
 def main(csv_file):
     assert os.path.exists(csv_file), "Tried to load " + csv_file + " but it does not exists"
 

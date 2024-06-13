@@ -44,7 +44,7 @@ class Creature:
         self.last_position = None
 
     def get_flat_links(self):
-        if self.flat_links == None:
+        if self.flat_links is None:
             gdicts = genome.Genome.get_genome_dicts(self.dna, self.spec)
             self.flat_links = genome.Genome.genome_to_links(gdicts)
         return self.flat_links
@@ -55,10 +55,10 @@ class Creature:
             return self.exp_links
 
         exp_links = [self.flat_links[0]]
-        genome.Genome.expandLinks(self.flat_links[0],
-                                  self.flat_links[0].name,
-                                  self.flat_links,
-                                  exp_links)
+        genome.Genome.expand_links(self.flat_links[0],
+                                   self.flat_links[0].name,
+                                   self.flat_links,
+                                   exp_links)
         self.exp_links = exp_links
         return self.exp_links
 
@@ -80,7 +80,7 @@ class Creature:
 
     def get_motors(self):
         self.get_expanded_links()
-        if self.motors == None:
+        if self.motors is None:
             motors = []
             for i in range(1, len(self.exp_links)):
                 l = self.exp_links[i]
@@ -90,7 +90,7 @@ class Creature:
         return self.motors
 
     def update_position(self, pos):
-        if self.start_position == None:
+        if self.start_position is None:
             self.start_position = pos
         else:
             self.last_position = pos

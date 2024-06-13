@@ -1,7 +1,7 @@
 # If you on a Windows machine with any Python version
 # or an M1 mac with any Python version
 # or an Intel Mac with Python > 3.7
-# the multi-threaded version does not work
+# the multithreaded version does not work
 # so instead, you can use this version.
 
 import unittest
@@ -42,7 +42,7 @@ class TestGA(unittest.TestCase):
                 p2 = pop.creatures[p2_ind]
                 # now we have the parents!
                 dna = genome.Genome.crossover(p1.dna, p2.dna)
-                dna = genome.Genome.point_mutate(dna, rate=0.1, amount=0.25)
+                dna = genome.Genome.point_mutate(dna, rate=0.1)
                 dna = genome.Genome.shrink_mutate(dna, rate=0.25)
                 dna = genome.Genome.grow_mutate(dna, rate=0.1)
                 cr = creature.Creature(1)

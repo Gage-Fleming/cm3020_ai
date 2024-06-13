@@ -1,11 +1,9 @@
-import genome
-import creature
-import pybullet as p
 import time
-import random
 import numpy as np
+import pybullet as p
+import creature
 
-## ... usual starter code to create a sim and floor
+# ... usual starter code to create a sim and floor
 p.connect(p.GUI)
 p.setPhysicsEngineParameter(enableFileCaching=0)
 p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)

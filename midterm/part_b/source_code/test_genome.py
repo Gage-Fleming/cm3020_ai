@@ -78,7 +78,7 @@ class GenomeTest(unittest.TestCase):
             genome.URDFLink(name="D", parent_name="C", recur=1),
         ]
         exp_links = [links[0]]
-        genome.Genome.expandLinks(links[0], links[0].name, links, exp_links)
+        genome.Genome.expand_links(links[0], links[0].name, links, exp_links)
         self.assertEqual(len(exp_links), 6)
 
     def testCrossover(self):
@@ -90,13 +90,13 @@ class GenomeTest(unittest.TestCase):
 
     def test_point(self):
         g1 = np.array([[1.0], [2.0], [3.0]])
-        g2 = genome.Genome.point_mutate(g1, rate=1, amount=0.25)
+        g2 = genome.Genome.point_mutate(g1, rate=1)
         self.assertFalse(np.array_equal(g1, g2))
 
     def test_point_range(self):
         g1 = np.array([[1.0], [0.0], [1.0], [0.0]])
         for i in range(100):
-            g2 = genome.Genome.point_mutate(g1, rate=1, amount=0.25)
+            g2 = genome.Genome.point_mutate(g1, rate=1)
             self.assertLessEqual(np.max(g2), 1.0)
             self.assertGreaterEqual(np.min(g2), 0.0)
 

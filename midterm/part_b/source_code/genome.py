@@ -3,15 +3,15 @@ import copy
 import random
 
 
-class Genome():
+class Genome:
     @staticmethod
     def get_random_gene(length):
-        gene = np.array([np.random.random() for i in range(length)])
+        gene = np.array([np.random.random() for _ in range(length)])
         return gene
 
     @staticmethod
     def get_random_genome(gene_length, gene_count):
-        genome = [Genome.get_random_gene(gene_length) for i in range(gene_count)]
+        genome = [Genome.get_random_gene(gene_length) for _ in range(gene_count)]
         return genome
 
     @staticmethod
@@ -57,8 +57,8 @@ class Genome():
         return gdicts
 
     @staticmethod
-    def expandLinks(parent_link, uniq_parent_name, flat_links, exp_links):
-        children = [l for l in flat_links if l.parent_name == parent_link.name]
+    def expand_links(parent_link, uniq_parent_name, flat_links, exp_links):
+        children = [link for link in flat_links if link.parent_name == parent_link.name]
         sibling_ind = 1
         for c in children:
             for r in range(int(c.recur)):
@@ -70,8 +70,9 @@ class Genome():
                 c_copy.name = uniq_name
                 c_copy.sibling_ind = sibling_ind
                 exp_links.append(c_copy)
-                assert c.parent_name != c.name, "Genome::expandLinks: link joined to itself: " + c.name + " joins " + c.parent_name
-                Genome.expandLinks(c, uniq_name, flat_links, exp_links)
+                assert c.parent_name != c.name, ("Genome::expandLinks: link joined to itself: "
+                                                 + c.name + " joins " + c.parent_name)
+                Genome.expand_links(c, uniq_name, flat_links, exp_links)
 
     @staticmethod
     def genome_to_links(gdicts):
@@ -109,7 +110,7 @@ class Genome():
                 parent_names.append(link_name)
             link_ind = link_ind + 1
 
-        # now just fix the first link so it links to nothing
+        # now just fix the first link, so it links to nothing
         links[0].parent_name = "None"
         return links
 
@@ -123,7 +124,7 @@ class Genome():
         return g3
 
     @staticmethod
-    def point_mutate(genome, rate, amount):
+    def point_mutate(genome, rate):
         new_genome = copy.copy(genome)
         for gene in new_genome:
             for i in range(len(gene)):

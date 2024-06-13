@@ -1,6 +1,6 @@
 import random
-import math
 from noise import pnoise2
+import math
 
 
 # def write_to_obj(filename, vertices, indices):
@@ -139,9 +139,6 @@ def generate_gaussian_pyramid(filename, size=10, resolution=0.5, sigma=3):
             f.write(f"v {vertex[0]} {vertex[1]} {vertex[2]}\n")
         for face in faces:
             f.write(f"f {face[0] + 1} {face[1] + 1} {face[2] + 1}\n")
-
-
-import math
 
 
 def gaussian2(x, y, sigma, height):
