@@ -45,8 +45,8 @@ class Creature:
 
     def get_flat_links(self):
         if self.flat_links is None:
-            gdicts = genome.Genome.get_genome_dicts(self.dna, self.spec)
-            self.flat_links = genome.Genome.genome_to_links(gdicts)
+            g_dicts = genome.Genome.get_genome_dicts(self.dna, self.spec)
+            self.flat_links = genome.Genome.genome_to_links(g_dicts)
         return self.flat_links
 
     def get_expanded_links(self):
@@ -83,8 +83,8 @@ class Creature:
         if self.motors is None:
             motors = []
             for i in range(1, len(self.exp_links)):
-                l = self.exp_links[i]
-                m = Motor(l.control_waveform, l.control_amp, l.control_freq)
+                link = self.exp_links[i]
+                m = Motor(link.control_waveform, link.control_amp, link.control_freq)
                 motors.append(m)
             self.motors = motors
         return self.motors
