@@ -8,9 +8,6 @@ class GenomeTest(unittest.TestCase):
     def testClassExists(self):
         self.assertIsNotNone(genome.Genome)
 
-    def testClassExists(self):
-        self.assertIsNotNone(genome.Genome)
-
     def testRandomGene(self):
         self.assertIsNotNone(genome.Genome.get_random_gene)
 
@@ -41,7 +38,7 @@ class GenomeTest(unittest.TestCase):
         spec = genome.Genome.get_gene_spec()
         self.assertIsNotNone(spec['link-length'])
 
-    def testGeneSpecHasLinkLength(self):
+    def testGeneSpecHasLinkLengthInd(self):
         spec = genome.Genome.get_gene_spec()
         self.assertIsNotNone(spec['link-length']["ind"])
 
@@ -128,12 +125,12 @@ class GenomeTest(unittest.TestCase):
         g2 = genome.Genome.grow_mutate(g1, rate=0)
         self.assertEqual(len(g2), len(g1))
 
-    def test_tocsv(self):
+    def test_to_csv(self):
         g1 = [[1, 2, 3]]
         genome.Genome.to_csv(g1, 'test.csv')
         self.assertTrue(os.path.exists('test.csv'))
 
-    def test_tocsv_content(self):
+    def test_to_csv_content(self):
         g1 = [[1, 2, 3]]
         genome.Genome.to_csv(g1, 'test.csv')
         expect = "1,2,3,\n"
@@ -141,7 +138,7 @@ class GenomeTest(unittest.TestCase):
             csv_str = f.read()
         self.assertEqual(csv_str, expect)
 
-    def test_tocsv_content2(self):
+    def test_to_csv_content2(self):
         g1 = [[1, 2, 3], [4, 5, 6]]
         genome.Genome.to_csv(g1, 'test.csv')
         expect = "1,2,3,\n4,5,6,\n"

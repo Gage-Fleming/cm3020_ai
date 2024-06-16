@@ -56,12 +56,12 @@ class Genome:
 
     @staticmethod
     def get_genome_dicts(genome, spec):
-        gdicts = []
+        g_dicts = []
 
         for gene in genome:
-            gdicts.append(Genome.get_gene_dict(gene, spec))
+            g_dicts.append(Genome.get_gene_dict(gene, spec))
 
-        return gdicts
+        return g_dicts
 
     @staticmethod
     def expand_links(parent_link, uniq_parent_name, flat_links, exp_links):
@@ -82,12 +82,12 @@ class Genome:
                 Genome.expand_links(c, uniq_name, flat_links, exp_links)
 
     @staticmethod
-    def genome_to_links(gdicts):
+    def genome_to_links(g_dicts):
         links = []
         link_ind = 0
         parent_names = [str(link_ind)]
 
-        for gdict in gdicts:
+        for gdict in g_dicts:
             link_name = str(link_ind)
             parent_ind = gdict["joint-parent"] * len(parent_names)
             assert parent_ind < len(parent_names), ("genome.py: parent ind too high: "
