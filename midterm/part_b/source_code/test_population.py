@@ -11,7 +11,7 @@ class TestPop(unittest.TestCase):
         self.assertLess(pid, 3)
 
     # parent id should be 1 as the first fitness is zero
-    # second is 1000 and third is 0.1 , so second should
+    # second is 1000 and the third is 0.1, so second should
     # almost always be selected
     def testSelPar2(self):
         fits = [0, 1000, 0.1]
