@@ -289,6 +289,7 @@ class URDFLink:
         child_tag = adom.createElement("child")
         child_tag.setAttribute("link", self.name)
         axis_tag = adom.createElement("axis")
+
         if self.joint_axis_xyz <= 0.33:
             axis_tag.setAttribute("xyz", "1 0 0")
         if self.joint_axis_xyz > 0.33 and self.joint_axis_xyz <= 0.66:

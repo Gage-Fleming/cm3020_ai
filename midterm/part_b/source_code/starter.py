@@ -17,7 +17,3 @@ def start_simulation():
     while True:
         p.stepSimulation()
         time.sleep(1.0 / 240)
-
-
-create_pybullet()
-start_simulation()

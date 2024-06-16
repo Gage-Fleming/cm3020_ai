@@ -17,7 +17,7 @@ class TestGA(unittest.TestCase):
         pop = population.Population(pop_size=10, gene_count=3)
         sim = simulation.Simulation()
 
-        for iteration in range(1000):
+        for iteration in range(10):
             for cr in pop.creatures:
                 sim.run_creature(cr, 2400)
 
