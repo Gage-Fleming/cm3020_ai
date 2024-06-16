@@ -17,7 +17,6 @@ def main(csv_file):
     plane_shape = p.createCollisionShape(p.GEOM_PLANE)
     floor = p.createMultiBody(plane_shape, plane_shape)
     p.setGravity(0, 0, -10)
-    #   p.setRealTimeSimulation(1)
 
     # generate a random creature
     cr = creature.Creature(gene_count=1)

@@ -34,39 +34,46 @@ class Genome:
                      "control-amp": {"scale": 0.25},
                      "control-freq": {"scale": 1}
                      }
+
         ind = 0
+
         for key in gene_spec.keys():
             gene_spec[key]["ind"] = ind
             ind = ind + 1
+
         return gene_spec
 
     @staticmethod
     def get_gene_dict(gene, spec):
         gdict = {}
+
         for key in spec:
             ind = spec[key]["ind"]
             scale = spec[key]["scale"]
             gdict[key] = gene[ind] * scale
+
         return gdict
 
     @staticmethod
     def get_genome_dicts(genome, spec):
         gdicts = []
+
         for gene in genome:
             gdicts.append(Genome.get_gene_dict(gene, spec))
+
         return gdicts
 
     @staticmethod
     def expand_links(parent_link, uniq_parent_name, flat_links, exp_links):
         children = [link for link in flat_links if link.parent_name == parent_link.name]
         sibling_ind = 1
+
         for c in children:
             for r in range(int(c.recur)):
                 sibling_ind = sibling_ind + 1
                 c_copy = copy.copy(c)
                 c_copy.parent_name = uniq_parent_name
                 uniq_name = c_copy.name + str(len(exp_links))
-                # print("exp: ", c.name, " -> ", uniq_name)
                 c_copy.name = uniq_name
                 c_copy.sibling_ind = sibling_ind
                 exp_links.append(c_copy)
@@ -79,13 +86,13 @@ class Genome:
         links = []
         link_ind = 0
         parent_names = [str(link_ind)]
+
         for gdict in gdicts:
             link_name = str(link_ind)
             parent_ind = gdict["joint-parent"] * len(parent_names)
-            assert parent_ind < len(parent_names), "genome.py: parent ind too high: " + str(parent_ind) + "got: " + str(
-                parent_names)
+            assert parent_ind < len(parent_names), ("genome.py: parent ind too high: "
+                                                    + str(parent_ind) + "got: " + str(parent_names))
             parent_name = parent_names[int(parent_ind)]
-            # print("available parents: ", parent_names, "chose", parent_name)
             recur = gdict["link-recurrence"]
             link = URDFLink(name=link_name,
                             parent_name=parent_name,
@@ -106,12 +113,14 @@ class Genome:
                             control_amp=gdict["control-amp"],
                             control_freq=gdict["control-freq"])
             links.append(link)
+
             if link_ind != 0:  # don't re-add the first link
                 parent_names.append(link_name)
             link_ind = link_ind + 1
 
         # now just fix the first link, so it links to nothing
         links[0].parent_name = "None"
+
         return links
 
     @staticmethod
@@ -119,13 +128,16 @@ class Genome:
         x1 = random.randint(0, len(g1) - 1)
         x2 = random.randint(0, len(g2) - 1)
         g3 = np.concatenate((g1[x1:], g2[x2:]))
+
         if len(g3) > len(g1):
             g3 = g3[0:len(g1)]
+
         return g3
 
     @staticmethod
     def point_mutate(genome, rate):
         new_genome = copy.copy(genome)
+
         for gene in new_genome:
             for i in range(len(gene)):
                 if random.random() < rate:
@@ -134,6 +146,7 @@ class Genome:
                     gene[i] = 0.9999
                 if gene[i] < 0.0:
                     gene[i] = 0.0
+
         return new_genome
 
     @staticmethod
@@ -163,6 +176,7 @@ class Genome:
         for gene in dna:
             for val in gene:
                 csv_str = csv_str + str(val) + ","
+
             csv_str = csv_str + '\n'
 
         with open(csv_file, 'w') as f:
@@ -221,23 +235,6 @@ class URDFLink:
         self.sibling_ind = 1
 
     def to_link_element(self, adom):
-        #         <link name="base_link">
-        #     <visual>
-        #       <geometry>
-        #         <cylinder length="0.6" radius="0.25"/>
-        #       </geometry>
-        #     </visual>
-        #     <collision>
-        #       <geometry>
-        #         <cylinder length="0.6" radius="0.25"/>
-        #       </geometry>
-        #     </collision>
-        #     <inertial>
-        # 	    <mass value="0.25"/>
-        # 	    <inertia ixx="0.0003" iyy="0.0003" izz="0.0003" ixy="0" ixz="0" iyz="0"/>
-        #     </inertial>
-        #   </link>
-
         link_tag = adom.createElement("link")
         link_tag.setAttribute("name", self.name)
         vis_tag = adom.createElement("visual")
@@ -258,17 +255,13 @@ class URDFLink:
         c_geom_tag.appendChild(c_cyl_tag)
         coll_tag.appendChild(c_geom_tag)
 
-        #     <inertial>
-        # 	    <mass value="0.25"/>
-        # 	    <inertia ixx="0.0003" iyy="0.0003" izz="0.0003" ixy="0" ixz="0" iyz="0"/>
-        #     </inertial>
         inertial_tag = adom.createElement("inertial")
         mass_tag = adom.createElement("mass")
-        # pi r^2 * height
+
         mass = np.pi * (self.link_radius * self.link_radius) * self.link_length
         mass_tag.setAttribute("value", str(mass))
         inertia_tag = adom.createElement("inertia")
-        # <inertia ixx="0.0003" iyy="0.0003" izz="0.0003" ixy="0" ixz="0" iyz="0"/>
+
         inertia_tag.setAttribute("ixx", "0.03")
         inertia_tag.setAttribute("iyy", "0.03")
         inertia_tag.setAttribute("izz", "0.03")
@@ -285,13 +278,6 @@ class URDFLink:
         return link_tag
 
     def to_joint_element(self, adom):
-        #           <joint name="base_to_sub2" type="revolute">
-        #     <parent link="base_link"/>
-        #     <child link="sub_link2"/>
-        #     <axis xyz="1 0 0"/>
-        #     <limit effort="10" upper="0" lower="10" velocity="1"/>
-        #     <origin rpy="0 0 0" xyz="0 0.5 0"/>
-        #   </joint>
         joint_tag = adom.createElement("joint")
         joint_tag.setAttribute("name", self.name + "_to_" + self.parent_name)
         if self.joint_type >= 0.5:
@@ -311,12 +297,12 @@ class URDFLink:
             axis_tag.setAttribute("xyz", "0 0 1")
 
         limit_tag = adom.createElement("limit")
-        # effort upper lower velocity
+
         limit_tag.setAttribute("effort", "1")
         limit_tag.setAttribute("upper", "-3.1415")
         limit_tag.setAttribute("lower", "3.1415")
         limit_tag.setAttribute("velocity", "1")
-        # <origin rpy="0 0 0" xyz="0 0.5 0"/>
+
         orig_tag = adom.createElement("origin")
 
         rpy1 = self.joint_origin_rpy_1 * self.sibling_ind
@@ -331,4 +317,5 @@ class URDFLink:
         joint_tag.appendChild(axis_tag)
         joint_tag.appendChild(limit_tag)
         joint_tag.appendChild(orig_tag)
+
         return joint_tag
