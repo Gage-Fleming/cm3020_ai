@@ -1,17 +1,19 @@
 import pybullet as p
+import pybullet_data
 import environment_helper as eh
 
 
 class Simulation:
-    def __init__(self, physicsClientId, sim_id=0):
-        self.physicsClientId = physicsClientId
+    def __init__(self, sim_id=0):
+        self.physicsClientId = p.connect(p.DIRECT)
         self.sim_id = sim_id
 
     def run_creature(self, cr, iterations=2400):
         pid = self.physicsClientId
-        p.resetSimulation(physicsClientId=pid)
-        p.setPhysicsEngineParameter(enableFileCaching=0, physicsClientId=pid)
-        p.setGravity(0, 0, -10, physicsClientId=pid)
+        p.resetSimulation()
+        p.setPhysicsEngineParameter(enableFileCaching=0)
+        p.setGravity(0, 0, -10)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
         eh.make_landscape()
 
@@ -20,16 +22,16 @@ class Simulation:
         with open(xml_file, 'w') as f:
             f.write(xml_str)
 
-        cid = p.loadURDF(xml_file, physicsClientId=pid)
+        cid = p.loadURDF(xml_file)
 
-        p.resetBasePositionAndOrientation(cid, [8, 8, 2.5], [0, 0, 0, 1], physicsClientId=pid)
+        p.resetBasePositionAndOrientation(cid, [7, 7, 5], [0, 0, 0, 1])
 
         for step in range(iterations):
-            p.stepSimulation(physicsClientId=pid)
+            p.stepSimulation()
             if step % 24 == 0:
                 self.update_motors(cid=cid, cr=cr)
 
-            pos, orn = p.getBasePositionAndOrientation(cid, physicsClientId=pid)
+            pos, orn = p.getBasePositionAndOrientation(cid)
             cr.update_position(pos)
 
     def update_motors(self, cid, cr):

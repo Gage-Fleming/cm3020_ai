@@ -12,21 +12,12 @@ def main(csv_file):
     assert os.path.exists(csv_file), "Tried to load " + csv_file + " but it does not exists"
 
     p.connect(p.GUI)
-    p.setPhysicsEngineParameter(enableFileCaching=0)
     p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
+    p.setPhysicsEngineParameter(enableFileCaching=0)
+    p.setPhysicsEngineParameter(enableFileCaching=0)
     p.setGravity(0, 0, -10)
 
-    eh.make_mountain()
-    arena_size = 20
-    eh.make_arena(arena_size=arena_size)
-
-    mountain_position = (0, 0, -1)  # Adjust as needed
-    mountain_orientation = p.getQuaternionFromEuler((0, 0, 0))
-    p.setAdditionalSearchPath('shapes/')
-    # mountain = p.loadURDF("mountain.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-    # mountain = p.loadURDF("mountain_with_cubes.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-
-    mountain = p.loadURDF("gaussian_pyramid.urdf", mountain_position, mountain_orientation, useFixedBase=1)
+    eh.make_landscape()
 
     # generate a random creature
     cr = creature.Creature(gene_count=1)
@@ -38,7 +29,7 @@ def main(csv_file):
     # load it into the sim
     rob1 = p.loadURDF('test.urdf')
     # air drop it
-    p.resetBasePositionAndOrientation(rob1, [0, 0, 2.5], [0, 0, 0, 1])
+    p.resetBasePositionAndOrientation(rob1, [7, 7, 3], [0, 0, 0, 1])
     start_pos, orn = p.getBasePositionAndOrientation(rob1)
 
     # iterate

@@ -1,5 +1,4 @@
 import pybullet as p
-import pybullet_data
 import creature
 import population
 import simulation
@@ -14,14 +13,8 @@ def start_simulation():
         p.stepSimulation()
         time.sleep(1.0 / 240)
 
-
-# Initialize pybullet and simulation tracker.
-physicsClientId = p.connect(p.GUI)
-p.setAdditionalSearchPath(pybullet_data.getDataPath())
-p.setGravity(0, 0, -10, physicsClientId=physicsClientId)
-
 pop = population.Population(pop_size=10, gene_count=3)
-sim = simulation.Simulation(physicsClientId=physicsClientId)
+sim = simulation.Simulation()
 
 for iteration in range(10):
     for cr in pop.creatures:
