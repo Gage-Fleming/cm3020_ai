@@ -24,7 +24,7 @@ class Simulation:
 
         cid = p.loadURDF(xml_file)
 
-        p.resetBasePositionAndOrientation(cid, [7, 7, 5], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(cid, [5, 5, 5], [0, 0, 0, 1])
 
         for step in range(iterations):
             p.stepSimulation()

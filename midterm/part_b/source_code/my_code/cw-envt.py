@@ -1,63 +1,71 @@
-import pybullet as p
 import creature
 import population
 import simulation
 import genome
 import numpy as np
-import time
-
-
-# Define helper function to run simulation on Mac.
-def start_simulation():
-    while True:
-        p.stepSimulation()
-        time.sleep(1.0 / 240)
+import environment_helper as eh
 
 pop = population.Population(pop_size=10, gene_count=3)
 sim = simulation.Simulation()
 
+# Get top of mountain for fitness function in x,y,z
+mountain_height = eh.make_landscape()
+top_of_mountain = (0, 0, mountain_height)
+
+# Create csv_stats file to record stats of genetic algorithm.
+csv_stats_file = open('stats.csv', 'x')
+csv_stats_file.write('fittest, mean, mean links, max links\n')
+csv_stats_file.close()
+
 for iteration in range(10):
     for cr in pop.creatures:
-        sim.run_creature(cr, 4800)
+        sim.run_creature(cr, 9600)
 
-    fits = [cr.get_distance_travelled() for cr in pop.creatures]
+    fits = [cr.get_distance_from_point(top_of_mountain) for cr in pop.creatures]
 
     links = [len(cr.get_expanded_links()) for cr in pop.creatures]
 
-    print(iteration, "fittest:",
-          np.round(np.max(fits), 3), "mean:",
-          np.round(np.mean(fits), 3), "mean links",
-          np.round(np.mean(links)), "max links",
-          np.round(np.max(links)))
+    # Write current creature stats to stats.csv
+    csv_stats_file = open('stats.csv', 'a')
+    stats_line = f'{np.round(np.min(fits), 3)}, ' \
+                 f'{np.round(np.mean(fits), 3)}, ' \
+                 f'{np.round(np.mean(links))}, ' \
+                 f'{np.round(np.max(links))}\n'
+    csv_stats_file.write(stats_line)
+    csv_stats_file.close()
 
-    fit_map = population.Population.get_fitness_map(fits)
-    new_creatures = []
+    print('Iteration', iteration, 'complete.')
 
-    for i in range(len(pop.creatures)):
-        p1_ind = population.Population.select_parent(fit_map)
-        p2_ind = population.Population.select_parent(fit_map)
-        p1 = pop.creatures[p1_ind]
-        p2 = pop.creatures[p2_ind]
+fit_map = population.Population.get_fitness_map(fits)
+new_creatures = []
 
-        # now we have the parents!
-        dna = genome.Genome.crossover(p1.dna, p2.dna)
-        dna = genome.Genome.point_mutate(dna, rate=0.1)
-        dna = genome.Genome.shrink_mutate(dna, rate=0.25)
-        dna = genome.Genome.grow_mutate(dna, rate=0.1)
-        cr = creature.Creature(1)
-        cr.update_dna(dna)
-        new_creatures.append(cr)
+for i in range(len(pop.creatures)):
+    p1_ind = population.Population.select_parent(fit_map)
+    p2_ind = population.Population.select_parent(fit_map)
+    p1 = pop.creatures[p1_ind]
+    p2 = pop.creatures[p2_ind]
 
-    # elitism
-    max_fit = np.max(fits)
+    # now we have the parents!
+    dna = genome.Genome.crossover(p1.dna, p2.dna)
+    dna = genome.Genome.point_mutate(dna, rate=0.1)
+    dna = genome.Genome.shrink_mutate(dna, rate=0.25)
+    dna = genome.Genome.grow_mutate(dna, rate=0.1)
+    cr = creature.Creature(1)
+    cr.update_dna(dna)
+    new_creatures.append(cr)
 
-    for cr in pop.creatures:
-        if cr.get_distance_travelled() == max_fit:
-            new_cr = creature.Creature(1)
-            new_cr.update_dna(cr.dna)
-            new_creatures[0] = new_cr
-            filename = "elite_" + str(iteration) + ".csv"
-            genome.Genome.to_csv(cr.dna, filename)
-            break
+# elitism
+min_fit = np.min(fits)
 
-    pop.creatures = new_creatures
+# Get elite creature for given population.
+for cr in pop.creatures:
+    if cr.get_distance_from_point(top_of_mountain) == min_fit:
+        new_cr = creature.Creature(1)
+        new_cr.update_dna(cr.dna)
+        new_creatures[0] = new_cr
+        filename = "elite_" + str(iteration) + ".csv"
+        genome.Genome.to_csv(cr.dna, filename)
+        break
+
+# Make the new population the current population.
+pop.creatures = new_creatures

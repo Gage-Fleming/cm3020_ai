@@ -103,6 +103,16 @@ class Creature:
         dist = np.linalg.norm(p1 - p2)
         return dist
 
+    def get_distance_from_point(self, mountain_top):
+        # If creature fails to load or encounters error, purposefully make it fail fit test.
+        if self.start_position is None or self.last_position is None:
+            return 100
+
+        p1 = np.asarray(mountain_top)
+        p2 = np.asarray(self.last_position)
+        dist = np.linalg.norm(p1 - p2)
+        return dist
+
     def update_dna(self, dna):
         self.dna = dna
         self.flat_links = None

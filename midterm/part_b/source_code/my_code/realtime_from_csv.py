@@ -29,7 +29,7 @@ def main(csv_file):
     # load it into the sim
     rob1 = p.loadURDF('test.urdf')
     # air drop it
-    p.resetBasePositionAndOrientation(rob1, [7, 7, 3], [0, 0, 0, 1])
+    p.resetBasePositionAndOrientation(rob1, [5, 5, 3], [0, 0, 0, 1])
     start_pos, orn = p.getBasePositionAndOrientation(rob1)
 
     # iterate

@@ -2,7 +2,6 @@ import pybullet as p
 import random
 import math
 
-
 def make_mountain(num_rocks=100, max_size=0.25, arena_size=10, mountain_height=5):
     def gaussian(x, y, sigma=arena_size / 4):
         """Return the height of the mountain at position (x, y) using a Gaussian function."""
@@ -72,11 +71,17 @@ def make_arena(arena_size=10, wall_height=1):
     p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_collision_shape, baseVisualShapeIndex=wall_visual_shape,
                       basePosition=[-arena_size / 2, 0, wall_height / 2])
 
+
 def make_landscape():
     arena_size = 20
     make_arena(arena_size=arena_size)
-    # eh.make_rocks(arena_size=arena_size)
     mountain_position = (0, 0, -1)
     mountain_orientation = p.getQuaternionFromEuler((0, 0, 0))
     p.setAdditionalSearchPath('shapes/')
     mountain = p.loadURDF("gaussian_pyramid.urdf", mountain_position, mountain_orientation, useFixedBase=1)
+
+    # Get mountain bounding box
+    mountain_aabb = p.getAABB(mountain)
+
+    # Return mountain height
+    return mountain_aabb[1][2] - mountain_aabb[0][2]
