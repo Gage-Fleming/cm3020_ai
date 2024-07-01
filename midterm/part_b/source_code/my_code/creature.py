@@ -1,3 +1,4 @@
+import pybullet as p
 import genome
 from xml.dom.minidom import getDOMImplementation
 from enum import Enum
@@ -42,6 +43,8 @@ class Creature:
         self.motors = None
         self.start_position = None
         self.last_position = None
+        self.closest_distance_to_mountain_top = None
+        self.number_of_times_not_touching_mountain = 0
 
     def get_flat_links(self):
         if self.flat_links is None:
@@ -103,16 +106,6 @@ class Creature:
         dist = np.linalg.norm(p1 - p2)
         return dist
 
-    def get_distance_from_point(self, mountain_top):
-        # If creature fails to load or encounters error, purposefully make it fail fit test.
-        if self.start_position is None or self.last_position is None:
-            return 100
-
-        p1 = np.asarray(mountain_top)
-        p2 = np.asarray(self.last_position)
-        dist = np.linalg.norm(p1 - p2)
-        return dist
-
     def update_dna(self, dna):
         self.dna = dna
         self.flat_links = None
@@ -120,3 +113,27 @@ class Creature:
         self.motors = None
         self.start_position = None
         self.last_position = None
+
+    def update_closest_distance_from_mountain_top(self, mountain_top):
+        # If creature fails to load or encounters error, purposefully make it fail fit test.
+        if self.start_position is None or self.last_position is None:
+            return 100
+
+        p1 = np.asarray(mountain_top)
+        p2 = np.asarray(self.last_position)
+        dist = np.linalg.norm(p1 - p2)
+        if self.closest_distance_to_mountain_top is None or dist < self.closest_distance_to_mountain_top:
+            self.closest_distance_to_mountain_top = dist
+
+    def check_if_creature_touching_Mountain(self, cid, mid):
+        contact_points = p.getContactPoints(bodyA=cid, bodyB=mid)
+        if len(contact_points) == 0:
+            self.number_of_times_not_touching_mountain += 1
+
+    def get_fitness(self):
+        fitness = (
+                self.closest_distance_to_mountain_top * 1.5
+                + self.number_of_times_not_touching_mountain * 0.05
+        )
+
+        return fitness

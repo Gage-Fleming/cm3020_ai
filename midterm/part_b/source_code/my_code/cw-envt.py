@@ -3,25 +3,26 @@ import population
 import simulation
 import genome
 import numpy as np
-import environment_helper as eh
 
-pop = population.Population(pop_size=10, gene_count=3)
-sim = simulation.Simulation()
+# Adjust basic variables for basic coursework
+pop_size = 10
+gene_count = 3
+num_iterations = 101
+sim_time = 2400
 
-# Get top of mountain for fitness function in x,y,z
-mountain_height = eh.make_landscape()
-top_of_mountain = (0, 0, mountain_height)
+pop = population.Population(pop_size=pop_size, gene_count=gene_count)
+sim = simulation.Simulation(sim_time=sim_time)
 
 # Create csv_stats file to record stats of genetic algorithm.
 csv_stats_file = open('stats.csv', 'x')
 csv_stats_file.write('fittest, mean, mean links, max links\n')
 csv_stats_file.close()
 
-for iteration in range(10):
+for iteration in range(num_iterations):
     for cr in pop.creatures:
         sim.run_creature(cr)
 
-    fits = [cr.get_distance_from_point(top_of_mountain) for cr in pop.creatures]
+    fits = [cr.get_fitness() for cr in pop.creatures]
 
     links = [len(cr.get_expanded_links()) for cr in pop.creatures]
 
@@ -55,15 +56,17 @@ for iteration in range(10):
     # elitism
     min_fit = np.min(fits)
 
-    # Get elite creature for given population.
-    for cr in pop.creatures:
-        if cr.get_distance_from_point(top_of_mountain) == min_fit:
-            new_cr = creature.Creature(1)
-            new_cr.update_dna(cr.dna)
-            new_creatures[0] = new_cr
-            filename = "elite_" + str(iteration) + ".csv"
-            genome.Genome.to_csv(cr.dna, filename)
-            break
+    # Limit production of elite creatures with 10,000 iterations.
+    if iteration % 10 == 0:
+        # Get elite creature for given population.
+        for cr in pop.creatures:
+            if cr.get_fitness() == min_fit:
+                new_cr = creature.Creature(1)
+                new_cr.update_dna(cr.dna)
+                new_creatures[0] = new_cr
+                filename = "elite_" + str(iteration) + ".csv"
+                genome.Genome.to_csv(cr.dna, filename)
+                break
 
     # Make the new population the current population.
     pop.creatures = new_creatures

@@ -83,5 +83,5 @@ def make_landscape():
     # Get mountain bounding box
     mountain_aabb = p.getAABB(mountain)
 
-    # Return mountain height
-    return mountain_aabb[1][2] - mountain_aabb[0][2]
+    # Return mountain height and mid
+    return (mountain_aabb[1][2] - mountain_aabb[0][2]), mountain

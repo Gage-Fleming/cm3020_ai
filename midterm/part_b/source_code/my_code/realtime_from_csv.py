@@ -17,7 +17,9 @@ def main(csv_file):
     p.setPhysicsEngineParameter(enableFileCaching=0)
     p.setGravity(0, 0, -10)
 
-    eh.make_landscape()
+    # Get top of mountain for fitness function in x,y,z
+    mountain_height, mid = eh.make_landscape()
+    top_of_mountain = (0, 0, mountain_height)
 
     # generate a random creature
     cr = creature.Creature(gene_count=1)
@@ -29,8 +31,7 @@ def main(csv_file):
     # load it into the sim
     rob1 = p.loadURDF('test.urdf')
     # air drop it
-    p.resetBasePositionAndOrientation(rob1, [5, 5, 3], [0, 0, 0, 1])
-    start_pos, orn = p.getBasePositionAndOrientation(rob1)
+    p.resetBasePositionAndOrientation(rob1, [5, 5, 1], [0, 0, 0, 1])
 
     # iterate
     elapsed_time = 0
@@ -51,15 +52,14 @@ def main(csv_file):
                                         controlMode=mode,
                                         targetVelocity=vel)
             new_pos, orn = p.getBasePositionAndOrientation(rob1)
-            # print(new_pos)
-            dist_moved = np.linalg.norm(np.asarray(start_pos) - np.asarray(new_pos))
+            dist_moved = np.linalg.norm(top_of_mountain - np.asarray(new_pos))
             print(dist_moved)
         time.sleep(wait_time)
         elapsed_time += wait_time
         if elapsed_time > total_time:
             break
 
-    print("TOTAL DISTANCE MOVED:", dist_moved)
+    print("Final distance from mountain:", dist_moved)
 
 
 if __name__ == "__main__":
