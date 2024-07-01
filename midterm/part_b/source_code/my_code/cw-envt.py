@@ -7,7 +7,7 @@ import numpy as np
 # Adjust basic variables for basic coursework
 pop_size = 10
 gene_count = 3
-num_iterations = 101
+num_iterations = 11
 sim_time = 2400
 
 pop = population.Population(pop_size=pop_size, gene_count=gene_count)
@@ -15,7 +15,8 @@ sim = simulation.Simulation(sim_time=sim_time)
 
 # Create csv_stats file to record stats of genetic algorithm.
 csv_stats_file = open('stats.csv', 'x')
-csv_stats_file.write('fittest, mean, mean links, max links\n')
+csv_stats_file.write('fittest, closest_distance_to_mountaintop, average_time_not_on_mountain mean, mean_links, '
+                     'max_links\n')
 csv_stats_file.close()
 
 for iteration in range(num_iterations):
@@ -23,12 +24,16 @@ for iteration in range(num_iterations):
         sim.run_creature(cr)
 
     fits = [cr.get_fitness() for cr in pop.creatures]
-
     links = [len(cr.get_expanded_links()) for cr in pop.creatures]
+
+    mountain_top_distances = [cr.get_closest_distance_to_mountain() for cr in pop.creatures]
+    not_touching_mountain = [cr.get_number_of_times_not_touching_mountain() for cr in pop.creatures]
 
     # Write current population stats to stats.csv
     csv_stats_file = open('stats.csv', 'a')
     stats_line = f'{np.round(np.min(fits), 3)}, ' \
+                 f'{np.round(np.min(mountain_top_distances), 3)}, ' \
+                 f'{np.round(np.mean(not_touching_mountain), 3)}, ' \
                  f'{np.round(np.mean(fits), 3)}, ' \
                  f'{np.round(np.mean(links))}, ' \
                  f'{np.round(np.max(links))}\n'

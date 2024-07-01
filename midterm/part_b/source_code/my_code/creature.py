@@ -132,8 +132,14 @@ class Creature:
 
     def get_fitness(self):
         fitness = (
-                self.closest_distance_to_mountain_top * 1.5
-                + self.number_of_times_not_touching_mountain * 0.05
+                self.closest_distance_to_mountain_top * 2
+                + self.number_of_times_not_touching_mountain * 0.5
         )
 
         return fitness
+
+    def get_closest_distance_to_mountain(self):
+        return self.closest_distance_to_mountain_top
+
+    def get_number_of_times_not_touching_mountain(self):
+        return self.number_of_times_not_touching_mountain
