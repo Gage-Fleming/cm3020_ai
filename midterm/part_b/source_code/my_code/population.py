@@ -1,5 +1,6 @@
 import creature
 import numpy as np
+import random
 
 
 class Population:
@@ -21,6 +22,15 @@ class Population:
         r = np.random.rand()  # 0-1
         r = r * fitmap[-1]
 
-        for i in range(len(fitmap)):
-            if r <= fitmap[i]:
+        for i in reversed(range(len(fitmap))):
+            if r >= fitmap[i]:
                 return i
+
+        return 0
+
+    @staticmethod
+    def tournament_fitness(fits, size=6):
+        creature_indexes = random.sample(range(len(fits)), size)
+        creature_fits = [fits[i] for i in creature_indexes]
+        winner_index = creature_indexes[np.argmin(creature_fits)]
+        return winner_index

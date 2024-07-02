@@ -127,13 +127,13 @@ class Creature:
 
     def check_if_creature_touching_Mountain(self, cid, mid):
         contact_points = p.getContactPoints(bodyA=cid, bodyB=mid)
-        if len(contact_points) == 0:
+        if len(contact_points) <= 0:
             self.number_of_times_not_touching_mountain += 1
 
     def get_fitness(self):
         fitness = (
                 self.closest_distance_to_mountain_top * 2
-                + self.number_of_times_not_touching_mountain * 0.5
+                + self.number_of_times_not_touching_mountain * 0.05
         )
 
         return fitness
