@@ -45,6 +45,8 @@ class Creature:
         self.last_position = None
         self.closest_distance_to_mountain_top = None
         self.number_of_times_not_touching_mountain = 0
+        self.cid = None
+        self.size = None
 
     def get_flat_links(self):
         if self.flat_links is None:
@@ -125,15 +127,22 @@ class Creature:
         if self.closest_distance_to_mountain_top is None or dist < self.closest_distance_to_mountain_top:
             self.closest_distance_to_mountain_top = dist
 
-    def check_if_creature_touching_Mountain(self, cid, mid):
-        contact_points = p.getContactPoints(bodyA=cid, bodyB=mid)
+    def check_if_creature_touching_mountain(self, mid):
+        contact_points = p.getContactPoints(bodyA=self.cid, bodyB=mid)
         if len(contact_points) <= 0:
             self.number_of_times_not_touching_mountain += 1
 
     def get_fitness(self):
+        fitness = 0
+        if self.size > 1.5:
+            size_adjustment = self.size * 5
+        else:
+            size_adjustment = self.size
+
         fitness = (
                 self.closest_distance_to_mountain_top * 2
-                + self.number_of_times_not_touching_mountain * 0.05
+                + self.number_of_times_not_touching_mountain * 0.02
+                + size_adjustment
         )
 
         return fitness
@@ -143,3 +152,18 @@ class Creature:
 
     def get_number_of_times_not_touching_mountain(self):
         return self.number_of_times_not_touching_mountain
+
+    def fail_creature(self):
+        self.closest_distance_to_mountain_top = 1000
+        self.number_of_times_not_touching_mountain = 10000
+
+    def set_cid(self, cid):
+        self.cid = cid
+
+    def set_size(self):
+        aabb_min, aabb_max = p.getAABB(self.cid)
+        creature_dimensions = np.array(aabb_max) - np.array(aabb_min)
+        self.size = np.max(creature_dimensions)
+
+    def get_size(self):
+        return self.size

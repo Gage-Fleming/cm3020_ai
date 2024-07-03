@@ -27,6 +27,8 @@ class Simulation:
             f.write(xml_str)
 
         cid = p.loadURDF(xml_file)
+        cr.set_cid(cid)
+        cr.set_size()
 
         p.resetBasePositionAndOrientation(cid, [5, 5, 1], [0, 0, 0, 1])
 
@@ -35,11 +37,16 @@ class Simulation:
             if step % 24 == 0:
                 self.update_motors(cid=cid, cr=cr)
 
-            pos, orn = p.getBasePositionAndOrientation(cid)
-            cr.update_position(pos)
+            try:
+                pos, orn = p.getBasePositionAndOrientation(cid)
+                cr.update_position(pos)
 
-            cr.update_closest_distance_from_mountain_top(mountain_top=top_of_mountain)
-            cr.check_if_creature_touching_Mountain(cid=cid, mid=mid)
+                cr.update_closest_distance_from_mountain_top(mountain_top=top_of_mountain)
+                cr.check_if_creature_touching_mountain(mid=mid)
+            except p.error as e:
+                print(f"Error retrieving position for creature {cid}. Failed creature: {e}")
+                cr.fail_creature()
+                break
 
     def update_motors(self, cid, cr):
         """

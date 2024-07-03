@@ -5,13 +5,13 @@ import genome
 import numpy as np
 
 # Adjust basic variables for basic coursework
-pop_size = 10
-gene_count = 3
-num_iterations = 1001
-sim_time = 2400
+pop_size = 50
+gene_count = 5
+num_iterations = 101
+sim_time = 4800
 
-point_mutate = 0.1
-shrink_mutate = 0.25
+point_mutate = 0.2
+shrink_mutate = 0.1
 grow_mutate = 0.1
 
 pop = population.Population(pop_size=pop_size, gene_count=gene_count)
@@ -19,8 +19,8 @@ sim = simulation.Simulation(sim_time=sim_time)
 
 # Create csv_stats file to record stats of genetic algorithm.
 csv_stats_file = open('stats.csv', 'x')
-csv_stats_file.write('fittest, mean, closest_distance_to_mountaintop, average_time_not_on_mountain, mean_links, '
-                     'max_links\n')
+csv_stats_file.write('fittest, mean, closest_distance_to_mountaintop, average_time_not_on_mountain, '
+                     'smallest_creature_size, largest_creature_size, average_creature_size, mean_links, max_links\n')
 csv_stats_file.close()
 
 for iteration in range(num_iterations):
@@ -32,6 +32,7 @@ for iteration in range(num_iterations):
 
     mountain_top_distances = [cr.get_closest_distance_to_mountain() for cr in pop.creatures]
     not_touching_mountain = [cr.get_number_of_times_not_touching_mountain() for cr in pop.creatures]
+    creature_sizes = [cr.get_size() for cr in pop.creatures]
 
     # Write current population stats to stats.csv
     csv_stats_file = open('stats.csv', 'a')
@@ -39,6 +40,9 @@ for iteration in range(num_iterations):
                  f'{np.round(np.mean(fits), 3)}, ' \
                  f'{np.round(np.min(mountain_top_distances), 3)}, ' \
                  f'{np.round(np.mean(not_touching_mountain), 3)}, ' \
+                 f'{np.round(np.min(creature_sizes), 3)}, ' \
+                 f'{np.round(np.max(creature_sizes), 3)}, ' \
+                 f'{np.round(np.mean(creature_sizes), 3)}, ' \
                  f'{np.round(np.mean(links))}, ' \
                  f'{np.round(np.max(links))}\n'
     csv_stats_file.write(stats_line)
