@@ -5,12 +5,12 @@ import genome
 import numpy as np
 
 # Adjust basic variables for basic coursework
-pop_size = 50
-gene_count = 5
-num_iterations = 101
-sim_time = 4800
+pop_size = 10
+gene_count = 3
+num_iterations = 1001
+sim_time = 2400
 
-point_mutate = 0.2
+point_mutate = 0.1
 shrink_mutate = 0.1
 grow_mutate = 0.1
 
@@ -19,7 +19,7 @@ sim = simulation.Simulation(sim_time=sim_time)
 
 # Create csv_stats file to record stats of genetic algorithm.
 csv_stats_file = open('stats.csv', 'x')
-csv_stats_file.write('fittest, mean, closest_distance_to_mountaintop, average_time_not_on_mountain, '
+csv_stats_file.write('fittest, mean, closest_distance_to_mountaintop, average_time_on_mountain, '
                      'smallest_creature_size, largest_creature_size, average_creature_size, mean_links, max_links\n')
 csv_stats_file.close()
 
@@ -31,15 +31,15 @@ for iteration in range(num_iterations):
     links = [len(cr.get_expanded_links()) for cr in pop.creatures]
 
     mountain_top_distances = [cr.get_closest_distance_to_mountain() for cr in pop.creatures]
-    not_touching_mountain = [cr.get_number_of_times_not_touching_mountain() for cr in pop.creatures]
+    touching_mountain = [cr.get_number_of_times_touching_mountain() for cr in pop.creatures]
     creature_sizes = [cr.get_size() for cr in pop.creatures]
 
     # Write current population stats to stats.csv
     csv_stats_file = open('stats.csv', 'a')
-    stats_line = f'{np.round(np.min(fits), 3)}, ' \
+    stats_line = f'{np.round(np.max(fits), 3)}, ' \
                  f'{np.round(np.mean(fits), 3)}, ' \
                  f'{np.round(np.min(mountain_top_distances), 3)}, ' \
-                 f'{np.round(np.mean(not_touching_mountain), 3)}, ' \
+                 f'{np.round(np.mean(touching_mountain), 3)}, ' \
                  f'{np.round(np.min(creature_sizes), 3)}, ' \
                  f'{np.round(np.max(creature_sizes), 3)}, ' \
                  f'{np.round(np.mean(creature_sizes), 3)}, ' \
@@ -66,13 +66,13 @@ for iteration in range(num_iterations):
         new_creatures.append(cr)
 
     # elitism
-    min_fit = np.min(fits)
+    max_fit = np.max(fits)
 
     # Limit production of elite creatures with large iterations.
     if iteration % 10 == 0:
         # Get elite creature for given population.
         for cr in pop.creatures:
-            if cr.get_fitness() == min_fit:
+            if cr.get_fitness() == max_fit:
                 new_cr = creature.Creature(1)
                 new_cr.update_dna(cr.dna)
                 new_creatures[0] = new_cr

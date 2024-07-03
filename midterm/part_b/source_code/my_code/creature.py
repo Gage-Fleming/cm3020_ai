@@ -44,7 +44,7 @@ class Creature:
         self.start_position = None
         self.last_position = None
         self.closest_distance_to_mountain_top = None
-        self.number_of_times_not_touching_mountain = 0
+        self.number_of_times_touching_mountain = 0
         self.cid = None
         self.size = None
 
@@ -129,33 +129,46 @@ class Creature:
 
     def check_if_creature_touching_mountain(self, mid):
         contact_points = p.getContactPoints(bodyA=self.cid, bodyB=mid)
-        if len(contact_points) <= 0:
-            self.number_of_times_not_touching_mountain += 1
+        if len(contact_points) > 0:
+            self.number_of_times_touching_mountain += 1
 
     def get_fitness(self):
         fitness = 0
-        if self.size > 1.5:
-            size_adjustment = self.size * 5
-        else:
-            size_adjustment = self.size
 
-        fitness = (
-                self.closest_distance_to_mountain_top * 2
-                + self.number_of_times_not_touching_mountain * 0.02
-                + size_adjustment
-        )
+        # Reward for getting closer to mountaintop
+        distance_reward = 100 / self.closest_distance_to_mountain_top
+        fitness += distance_reward
+
+        # Reward for vertical progress
+        fitness += (self.last_position[2] - self.start_position[2]) * 2
+
+        # Penalty for size of creature to discourage larger creatures
+        if self.size > 1.5:
+            fitness -= self.size * 10
+        else:
+            fitness -= self.size
+
+        # Reward for touching the mountain
+        fitness += self.number_of_times_touching_mountain * 0.03
+
+        # Reward for overall movement.
+        fitness += self.get_distance_travelled()
+
+        # Check to ensure fitness is not negative.
+        if fitness <= 0:
+            fitness = 0.5
 
         return fitness
 
     def get_closest_distance_to_mountain(self):
         return self.closest_distance_to_mountain_top
 
-    def get_number_of_times_not_touching_mountain(self):
-        return self.number_of_times_not_touching_mountain
+    def get_number_of_times_touching_mountain(self):
+        return self.number_of_times_touching_mountain
 
     def fail_creature(self):
-        self.closest_distance_to_mountain_top = 1000
-        self.number_of_times_not_touching_mountain = 10000
+        self.closest_distance_to_mountain_top = 100
+        self.number_of_times_touching_mountain = 0
 
     def set_cid(self, cid):
         self.cid = cid

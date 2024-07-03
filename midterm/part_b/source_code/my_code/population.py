@@ -32,5 +32,5 @@ class Population:
     def tournament_fitness(fits, size=6):
         creature_indexes = random.sample(range(len(fits)), size)
         creature_fits = [fits[i] for i in creature_indexes]
-        winner_index = creature_indexes[np.argmin(creature_fits)]
+        winner_index = creature_indexes[np.argmax(creature_fits)]
         return winner_index
