@@ -136,11 +136,14 @@ class Creature:
         fitness = 0
 
         # Reward for getting closer to mountaintop
-        distance_reward = 100 / self.closest_distance_to_mountain_top
+        distance_reward = 200 / self.closest_distance_to_mountain_top
         fitness += distance_reward
 
         # Reward for vertical progress
         fitness += (self.last_position[2] - self.start_position[2]) * 2
+
+        # Reward for overall movement.
+        fitness += self.get_distance_travelled() * 2
 
         # Penalty for size of creature to discourage larger creatures
         if self.size > 1.5:
@@ -150,9 +153,6 @@ class Creature:
 
         # Reward for touching the mountain
         fitness += self.number_of_times_touching_mountain * 0.1
-
-        # Reward for overall movement.
-        fitness += self.get_distance_travelled()
 
         # Check to ensure fitness is not negative.
         if fitness <= 0:
