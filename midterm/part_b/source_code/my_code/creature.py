@@ -149,7 +149,7 @@ class Creature:
             fitness -= self.size
 
         # Reward for touching the mountain
-        fitness += self.number_of_times_touching_mountain * 0.03
+        fitness += self.number_of_times_touching_mountain * 0.1
 
         # Reward for overall movement.
         fitness += self.get_distance_travelled()

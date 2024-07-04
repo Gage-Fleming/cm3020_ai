@@ -5,14 +5,15 @@ import genome
 import numpy as np
 
 # Adjust basic variables for basic coursework
-pop_size = 10
-gene_count = 3
-num_iterations = 1001
-sim_time = 2400
+pop_size = 50
+gene_count = 5
+num_iterations = 101
+sim_time = 4800
 
-point_mutate = 0.1
+point_mutate = 0.20
 shrink_mutate = 0.1
 grow_mutate = 0.1
+tournament_size = 3
 
 pop = population.Population(pop_size=pop_size, gene_count=gene_count)
 sim = simulation.Simulation(sim_time=sim_time)
@@ -51,8 +52,8 @@ for iteration in range(num_iterations):
     new_creatures = []
 
     for i in range(len(pop.creatures)):
-        p1_ind = population.Population.tournament_fitness(fits)
-        p2_ind = population.Population.tournament_fitness(fits)
+        p1_ind = population.Population.tournament_fitness(fits, tournament_size)
+        p2_ind = population.Population.tournament_fitness(fits, tournament_size)
         p1 = pop.creatures[p1_ind]
         p2 = pop.creatures[p2_ind]
 

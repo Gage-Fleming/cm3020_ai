@@ -47,19 +47,12 @@ def main(csv_file):
             for jid in range(p.getNumJoints(rob1)):
                 mode = p.VELOCITY_CONTROL
                 vel = motors[jid].get_output()
-                p.setJointMotorControl2(rob1,
-                                        jid,
-                                        controlMode=mode,
-                                        targetVelocity=vel)
-            new_pos, orn = p.getBasePositionAndOrientation(rob1)
-            dist_moved = np.linalg.norm(top_of_mountain - np.asarray(new_pos))
-            print(dist_moved)
+                p.setJointMotorControl2(rob1, jid, controlMode=mode, targetVelocity=vel)
+
         time.sleep(wait_time)
         elapsed_time += wait_time
         if elapsed_time > total_time:
             break
-
-    print("Final distance from mountain:", dist_moved)
 
 
 if __name__ == "__main__":
