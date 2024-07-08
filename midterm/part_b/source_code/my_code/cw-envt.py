@@ -5,15 +5,15 @@ import genome
 import numpy as np
 
 # Adjust basic variables for basic coursework
-num_iterations = 1001
-pop_size = 75
-gene_count = 5
-sim_time = 5000
+num_iterations = 501
+pop_size = 50
+gene_count = 3
+sim_time = 4800
 
 tournament_size = int(pop_size * 0.1)
 point_mutate = 0.2
-shrink_mutate = 0.15
-grow_mutate = 0.15
+shrink_mutate = 0.25
+grow_mutate = 0.10
 
 pop = population.Population(pop_size=pop_size, gene_count=gene_count)
 sim = simulation.Simulation(sim_time=sim_time)

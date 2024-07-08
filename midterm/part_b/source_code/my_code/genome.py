@@ -213,7 +213,8 @@ class URDFLink:
                  joint_origin_xyz_3=0.1,
                  control_waveform=0.1,
                  control_amp=0.1,
-                 control_freq=0.1):
+                 control_freq=0.1,
+                 link_shape=0.25):
         self.name = name
         self.parent_name = parent_name
         self.recur = recur
@@ -234,25 +235,46 @@ class URDFLink:
         self.control_freq = control_freq
         self.sibling_ind = 1
 
+        self.link_shape = link_shape
+
     def to_link_element(self, adom):
         link_tag = adom.createElement("link")
         link_tag.setAttribute("name", self.name)
         vis_tag = adom.createElement("visual")
         geom_tag = adom.createElement("geometry")
-        cyl_tag = adom.createElement("cylinder")
-        cyl_tag.setAttribute("length", str(self.link_length))
-        cyl_tag.setAttribute("radius", str(self.link_radius))
 
-        geom_tag.appendChild(cyl_tag)
+        # Add more potential shapes. Shapes and code referenced from reference [4].
+        if self.link_shape <= 0.25:
+            # Link will be a cylinder.
+            shape_tag = adom.createElement("cylinder")
+            # Store shape of cylinder.
+            shape_tag.setAttribute("length", str(self.link_length))
+            shape_tag.setAttribute("radius", str(self.link_radius))
+        elif self.link_shape <= 0.5:
+            # Link will be a box.
+            shape_tag = adom.createElement("box")
+            # Store shape of box.
+            shape_tag.setAttribute("size", f"{self.link_radius * 2} {self.link_radius * 2} {self.link_length}")
+        elif self.link_shape <= 0.75:
+            # Link will be a sphere.
+            shape_tag = adom.createElement("sphere")
+            # Store shape of sphere.
+            shape_tag.setAttribute("radius", str(self.link_radius))
+        else:
+            # Link will be a capsule.
+            shape_tag = adom.createElement("capsule")
+            # Store shape of capsule.
+            shape_tag.setAttribute("length", str(self.link_length))
+            shape_tag.setAttribute("radius", str(self.link_radius))
+
+        geom_tag.appendChild(shape_tag)
         vis_tag.appendChild(geom_tag)
 
         coll_tag = adom.createElement("collision")
         c_geom_tag = adom.createElement("geometry")
-        c_cyl_tag = adom.createElement("cylinder")
-        c_cyl_tag.setAttribute("length", str(self.link_length))
-        c_cyl_tag.setAttribute("radius", str(self.link_radius))
+        c_shape_tag = shape_tag.cloneNode(True)
 
-        c_geom_tag.appendChild(c_cyl_tag)
+        c_geom_tag.appendChild(c_shape_tag)
         coll_tag.appendChild(c_geom_tag)
 
         inertial_tag = adom.createElement("inertial")

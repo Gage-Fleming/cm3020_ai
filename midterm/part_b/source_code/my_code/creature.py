@@ -3,33 +3,47 @@ import genome
 from xml.dom.minidom import getDOMImplementation
 from enum import Enum
 import numpy as np
+from scipy import signal
 
 
 class MotorType(Enum):
     PULSE = 1
     SINE = 2
+    TRIANGLE = 3
+    SAWTOOTH = 4
 
 
 class Motor:
     def __init__(self, control_waveform, control_amp, control_freq):
-        if control_waveform <= 0.5:
+        if control_waveform <= 0.25:
             self.motor_type = MotorType.PULSE
-        else:
+        elif control_waveform <= 0.50:
             self.motor_type = MotorType.SINE
+        elif control_waveform <= 0.75:
+            self.motor_type = MotorType.TRIANGLE
+        else:
+            self.motor_type = MotorType.SAWTOOTH
+
         self.amp = control_amp
         self.freq = control_freq
         self.phase = 0
 
     def get_output(self):
         self.phase = (self.phase + self.freq) % (np.pi * 2)
+
         if self.motor_type == MotorType.PULSE:
             if self.phase < np.pi:
                 output = 1
             else:
                 output = -1
-
-        if self.motor_type == MotorType.SINE:
+        elif self.motor_type == MotorType.SINE:
             output = np.sin(self.phase)
+        elif self.motor_type == MotorType.TRIANGLE:
+            # Code taken from reference [3].
+            output = signal.sawtooth(self.phase, width=0.5)
+        elif self.motor_type == MotorType.SAWTOOTH:
+            # Code taken from reference [3].
+            output = signal.sawtooth(self.phase)
 
         return output
 
