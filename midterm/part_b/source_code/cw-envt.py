@@ -1,104 +1,107 @@
-import pybullet as p
-import pybullet_data
 import creature
-import random
-import math
+import population
+import simulation
+import genome
+import numpy as np
 
-p.connect(p.GUI)
-p.setAdditionalSearchPath(pybullet_data.getDataPath())
+# *** CODE WRITTEN BY GAGE FLEMING ***
+# Adjust basic variables for basic coursework
+num_iterations = 501
+pop_size = 50
+gene_count = 3
+sim_time = 4800
+tournament_size = int(pop_size * 0.1)
+point_mutate = 0.2
+shrink_mutate = 0.25
+grow_mutate = 0.10
 
+# Get gene spec for evolve limiter.
+gene_spec = genome.Genome.get_gene_spec()
+# *** END OF CODE WRITTEN BY GAGE FLEMING ***
 
-def make_mountain(num_rocks=100, max_size=0.25, arena_size=10, mountain_height=5):
-    def gaussian(x, y, sigma=arena_size / 4):
-        """Return the height of the mountain at position (x, y) using a Gaussian function."""
-        return mountain_height * math.exp(-((x ** 2 + y ** 2) / (2 * sigma ** 2)))
+pop = population.Population(pop_size=pop_size, gene_count=gene_count)
+sim = simulation.Simulation(sim_time=sim_time)
 
-    for _ in range(num_rocks):
-        x = random.uniform(-1 * arena_size / 2, arena_size / 2)
-        y = random.uniform(-1 * arena_size / 2, arena_size / 2)
-        z = gaussian(x, y)  # Height determined by the Gaussian function
+# *** CODE WRITTEN BY GAGE FLEMING ***
+# Create csv_stats file to record stats of genetic algorithm.
+csv_stats_file = open('stats.csv', 'x')
+csv_stats_file.write('iteration, fittest_fit, average_fit, fittest_mountain_fitness, average_mountain_fitness, '
+                     'fittest_mountain_touching_fitness, average_mountain_touching_fitness, fittest_size_fitness, '
+                     'average_size_fitness, fittest_distance, mean_distance, fittest_vertical_distance, '
+                     'average_vertical_distance, max_links, average_links\n')
+csv_stats_file.close()
+# *** END OF CODE WRITTEN BY GAGE FLEMING ***
 
-        # Adjust the size of the rocks based on height. Higher rocks (closer to the peak) will be smaller.
-        size_factor = 1 - (z / mountain_height)
-        size = random.uniform(0.1, max_size) * size_factor
+for iteration in range(num_iterations):
+    for cr in pop.creatures:
+        sim.run_creature(cr)
 
-        orientation = p.getQuaternionFromEuler(
-            [random.uniform(0, 3.14), random.uniform(0, 3.14), random.uniform(0, 3.14)])
-        rock_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[size, size, size])
-        rock_visual = p.createVisualShape(p.GEOM_BOX, halfExtents=[size, size, size], rgbaColor=[0.5, 0.5, 0.5, 1])
-        rock_body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=rock_shape, baseVisualShapeIndex=rock_visual,
-                                      basePosition=[x, y, z], baseOrientation=orientation)
+    fits = [cr.get_fitness(sim_time) for cr in pop.creatures]
+    links = [len(cr.get_expanded_links()) for cr in pop.creatures]
 
+    # *** CODE WRITTEN BY GAGE FLEMING ***
+    # Get stat trackers.
+    mountain_top_fitness = [cr.distance_fitness_helper() for cr in pop.creatures]
+    touching_mountain_fitness = [cr.touching_mountain_fitness_helper(sim_time) for cr in pop.creatures]
+    size_fitness = [cr.size_fitness_helper() for cr in pop.creatures]
+    distance_fitness = [cr.distance_travelled_fitness_helper() for cr in pop.creatures]
+    vertical_distance_fitness = [cr.vertical_distance_fitnees_helper() for cr in pop.creatures]
 
-def make_rocks(num_rocks=100, max_size=0.25, arena_size=10):
-    for _ in range(num_rocks):
-        x = random.uniform(-1 * arena_size / 2, arena_size / 2)
-        y = random.uniform(-1 * arena_size / 2, arena_size / 2)
-        z = 0.5  # Adjust based on your needs
-        size = random.uniform(0.1, max_size)
-        orientation = p.getQuaternionFromEuler(
-            [random.uniform(0, 3.14), random.uniform(0, 3.14), random.uniform(0, 3.14)])
-        rock_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[size, size, size])
-        rock_visual = p.createVisualShape(p.GEOM_BOX, halfExtents=[size, size, size], rgbaColor=[0.5, 0.5, 0.5, 1])
-        rock_body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=rock_shape, baseVisualShapeIndex=rock_visual,
-                                      basePosition=[x, y, z], baseOrientation=orientation)
+    # Write current population stats to stats.csv
+    csv_stats_file = open('stats.csv', 'a')
+    stats_line = f'{iteration}, ' \
+                 f'{np.round(np.max(fits), 3)}, ' \
+                 f'{np.round(np.mean(fits), 3)}, ' \
+                 f'{np.round(np.max(mountain_top_fitness), 3)}, ' \
+                 f'{np.round(np.mean(mountain_top_fitness), 3)}, ' \
+                 f'{np.round(np.max(touching_mountain_fitness), 3)}, ' \
+                 f'{np.round(np.mean(touching_mountain_fitness), 3)}, ' \
+                 f'{np.round(np.min(size_fitness), 3)}, ' \
+                 f'{np.round(np.mean(size_fitness), 3)}, ' \
+                 f'{np.round(np.max(distance_fitness), 3)}, ' \
+                 f'{np.round(np.mean(distance_fitness), 3)}, ' \
+                 f'{np.round(np.max(vertical_distance_fitness), 3)}, ' \
+                 f'{np.round(np.mean(vertical_distance_fitness), 3)}, ' \
+                 f'{np.round(np.max(links))}, ' \
+                 f'{np.round(np.mean(links))}\n'
+    csv_stats_file.write(stats_line)
+    csv_stats_file.close()
+    # *** END OF CODE WRITTEN BY GAGE FLEMING ***
 
+    new_creatures = []
 
-def make_arena(arena_size=10, wall_height=1):
-    wall_thickness = 0.5
-    floor_collision_shape = p.createCollisionShape(shapeType=p.GEOM_BOX,
-                                                   halfExtents=[arena_size / 2, arena_size / 2, wall_thickness])
-    floor_visual_shape = p.createVisualShape(shapeType=p.GEOM_BOX,
-                                             halfExtents=[arena_size / 2, arena_size / 2, wall_thickness],
-                                             rgbaColor=[1, 1, 0, 1])
-    floor_body = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=floor_collision_shape,
-                                   baseVisualShapeIndex=floor_visual_shape, basePosition=[0, 0, -wall_thickness])
+    for i in range(len(pop.creatures)):
+        p1_ind = population.Population.tournament_fitness(fits, tournament_size)
+        p2_ind = population.Population.tournament_fitness(fits, tournament_size)
+        p1 = pop.creatures[p1_ind]
+        p2 = pop.creatures[p2_ind]
 
-    wall_collision_shape = p.createCollisionShape(shapeType=p.GEOM_BOX,
-                                                  halfExtents=[arena_size / 2, wall_thickness / 2, wall_height / 2])
-    wall_visual_shape = p.createVisualShape(shapeType=p.GEOM_BOX,
-                                            halfExtents=[arena_size / 2, wall_thickness / 2, wall_height / 2],
-                                            rgbaColor=[0.7, 0.7, 0.7, 1])  # Gray walls
+        # now we have the parents!
+        dna = genome.Genome.crossover(p1.dna, p2.dna)
+        dna = genome.Genome.point_mutate(dna, rate=point_mutate, gene_spec=gene_spec)
+        dna = genome.Genome.shrink_mutate(dna, rate=shrink_mutate, gene_spec=gene_spec)
+        dna = genome.Genome.grow_mutate(dna, rate=grow_mutate, gene_spec=gene_spec)
+        cr = creature.Creature(1)
+        cr.update_dna(dna)
+        new_creatures.append(cr)
 
-    # Create four walls
-    p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_collision_shape, baseVisualShapeIndex=wall_visual_shape,
-                      basePosition=[0, arena_size / 2, wall_height / 2])
-    p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_collision_shape, baseVisualShapeIndex=wall_visual_shape,
-                      basePosition=[0, -arena_size / 2, wall_height / 2])
+    # elitism
+    max_fit = np.max(fits)
 
-    wall_collision_shape = p.createCollisionShape(shapeType=p.GEOM_BOX,
-                                                  halfExtents=[wall_thickness / 2, arena_size / 2, wall_height / 2])
-    wall_visual_shape = p.createVisualShape(shapeType=p.GEOM_BOX,
-                                            halfExtents=[wall_thickness / 2, arena_size / 2, wall_height / 2],
-                                            rgbaColor=[0.7, 0.7, 0.7, 1])  # Gray walls
+    # Limit production of elite creatures with large iterations.
+    if iteration % 10 == 0:
+        # Get elite creature for given population.
+        for cr in pop.creatures:
+            if cr.get_fitness(sim_time) == max_fit:
+                new_cr = creature.Creature(1)
+                new_cr.update_dna(cr.dna)
+                new_creatures[0] = new_cr
+                filename = "elite_" + str(iteration) + ".csv"
+                genome.Genome.to_csv(cr.dna, filename)
+                break
 
-    p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_collision_shape, baseVisualShapeIndex=wall_visual_shape,
-                      basePosition=[arena_size / 2, 0, wall_height / 2])
-    p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_collision_shape, baseVisualShapeIndex=wall_visual_shape,
-                      basePosition=[-arena_size / 2, 0, wall_height / 2])
+    # Make the new population the current population.
+    pop.creatures = new_creatures
 
-
-p.setGravity(0, 0, -10)
-
-arena_size = 20
-make_arena(arena_size=arena_size)
-
-# make_rocks(arena_size=arena_size)
-
-mountain_position = (0, 0, -1)  # Adjust as needed
-mountain_orientation = p.getQuaternionFromEuler((0, 0, 0))
-p.setAdditionalSearchPath('shapes/')
-# mountain = p.loadURDF("mountain.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-# mountain = p.loadURDF("mountain_with_cubes.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-
-mountain = p.loadURDF("gaussian_pyramid.urdf", mountain_position, mountain_orientation, useFixedBase=1)
-
-# generate a random creature
-cr = creature.Creature(gene_count=3)
-# save it to XML
-with open('test.urdf', 'w') as f:
-    f.write(cr.to_xml())
-# load it into the sim
-rob1 = p.loadURDF('test.urdf', (0, 0, 10))
-
-p.setRealTimeSimulation(1)
+    # Indicate iteration is complete
+    print('Iteration', iteration, 'complete.')

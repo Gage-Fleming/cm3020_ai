@@ -14,26 +14,30 @@ class Genome:
         genome = [Genome.get_random_gene(gene_length) for _ in range(gene_count)]
         return genome
 
+    # *** CODE PARTIALLY WRITTEN BY GAGE FLEMING ***
+    # Add evolve values to genes.
     @staticmethod
     def get_gene_spec():
-        gene_spec = {"link-shape": {"scale": 1},
-                     "link-length": {"scale": 2},
-                     "link-radius": {"scale": 1},
-                     "link-recurrence": {"scale": 3},
-                     "link-mass": {"scale": 1},
-                     "joint-type": {"scale": 1},
-                     "joint-parent": {"scale": 1},
-                     "joint-axis-xyz": {"scale": 1},
-                     "joint-origin-rpy-1": {"scale": np.pi * 2},
-                     "joint-origin-rpy-2": {"scale": np.pi * 2},
-                     "joint-origin-rpy-3": {"scale": np.pi * 2},
-                     "joint-origin-xyz-1": {"scale": 1},
-                     "joint-origin-xyz-2": {"scale": 1},
-                     "joint-origin-xyz-3": {"scale": 1},
-                     "control-waveform": {"scale": 1},
-                     "control-amp": {"scale": 0.25},
-                     "control-freq": {"scale": 1}
-                     }
+        gene_spec = {
+            "link-shape": {"scale": 1, "evolve": True},
+            "link-length": {"scale": 2, "evolve": True},
+            "link-radius": {"scale": 1, "evolve": True},
+            "link-recurrence": {"scale": 3, "evolve": True},
+            "link-mass": {"scale": 1, "evolve": True},
+            "joint-type": {"scale": 1, "evolve": True},
+            "joint-parent": {"scale": 1, "evolve": True},
+            "joint-axis-xyz": {"scale": 1, "evolve": True},
+            "joint-origin-rpy-1": {"scale": np.pi * 2, "evolve": False},
+            "joint-origin-rpy-2": {"scale": np.pi * 2, "evolve": False},
+            "joint-origin-rpy-3": {"scale": np.pi * 2, "evolve": False},
+            "joint-origin-xyz-1": {"scale": 1, "evolve": False},
+            "joint-origin-xyz-2": {"scale": 1, "evolve": False},
+            "joint-origin-xyz-3": {"scale": 1, "evolve": False},
+            "control-waveform": {"scale": 1, "evolve": True},
+            "control-amp": {"scale": 0.25, "evolve": True},
+            "control-freq": {"scale": 1, "evolve": True}
+        }
+        # *** END OF CODE PARTIALLY WRITTEN BY GAGE FLEMING ***
 
         ind = 0
 
@@ -89,9 +93,11 @@ class Genome:
 
         for gdict in g_dicts:
             link_name = str(link_ind)
-            parent_ind = gdict["joint-parent"] * len(parent_names)
-            assert parent_ind < len(parent_names), ("genome.py: parent ind too high: "
-                                                    + str(parent_ind) + "got: " + str(parent_names))
+            # *** CODE WRITTEN BY GAGE FLEMING ***
+            # Change how parent value is calculated to avoid underflow error.
+            parent_ind = int(gdict["joint-parent"] * (len(parent_names) - 1))
+            parent_ind = max(0, min(parent_ind, len(parent_names) - 1))
+            # *** END OF CODE WRITTEN BY GAGE FLEMING ***
             parent_name = parent_names[int(parent_ind)]
             recur = gdict["link-recurrence"]
             link = URDFLink(name=link_name,
@@ -134,41 +140,58 @@ class Genome:
 
         return g3
 
+    # *** CODE PARTIALLY WRITTEN BY GAGE FLEMING ***
+    # Add gene spec parameter to mutation functions to help with evolution checker.
     @staticmethod
-    def point_mutate(genome, rate):
+    def point_mutate(genome, rate, gene_spec):
         new_genome = copy.copy(genome)
 
+        # Add check to see if gene is mutable.
         for gene in new_genome:
-            for i in range(len(gene)):
-                if random.random() < rate:
-                    gene[i] += 0.1
-                if gene[i] >= 1.0:
-                    gene[i] = 0.9999
-                if gene[i] < 0.0:
-                    gene[i] = 0.0
+            # Iterate through gene spec.
+            for i, (key, spec) in enumerate(gene_spec.items()):
+                # If gene can evolve and the random rate is above check mutate.
+                if spec["evolve"] and random.random() < rate:
+                    gene[i] += random.uniform(-0.1, 0.1)
+                    # Ensure gene is not negative.
+                    gene[i] = max(0, min(gene[i], 1))
 
         return new_genome
 
     @staticmethod
-    def shrink_mutate(genome, rate):
+    def shrink_mutate(genome, rate, gene_spec):
         if len(genome) == 1:
             return copy.copy(genome)
+        # Add check to see if gene is mutable.
         if random.random() < rate:
-            ind = random.randint(0, len(genome) - 1)
-            new_genome = np.delete(genome, ind, 0)
-            return new_genome
+            # Get the gene's that are mutable.
+            evolve_indices = [i for i, gene in enumerate(genome) if
+                              any(gene_spec[key]["evolve"] for key in gene_spec)]
+            # If evolve genes exist they are candidates for shrink mutate.
+            if evolve_indices:
+                ind = random.choice(evolve_indices)
+                new_genome = np.delete(genome, ind, 0)
+                return new_genome
         else:
             return copy.copy(genome)
 
     @staticmethod
-    def grow_mutate(genome, rate):
+    def grow_mutate(genome, rate, gene_spec):
+        # Add check to see if gene is mutable.
         if random.random() < rate:
-            gene = Genome.get_random_gene(len(genome[0]))
-            new_genome = copy.copy(genome)
-            new_genome = np.append(new_genome, [gene], axis=0)
+            # Create new gene.
+            new_gene = Genome.get_random_gene(len(genome[0]))
+            # Iterate through gene spec.
+            for i, (key, spec) in enumerate(gene_spec.items()):
+                # Check if gene can be evolved.
+                if not spec["evolve"]:
+                    new_gene[i] = genome[0][i]
+            new_genome = np.append(genome, [new_gene], axis=0)
             return new_genome
         else:
             return copy.copy(genome)
+
+    # *** END OF CODE PARTIALLY WRITTEN BY GAGE FLEMING ***
 
     @staticmethod
     def to_csv(dna, csv_file):
@@ -213,7 +236,8 @@ class URDFLink:
                  joint_origin_xyz_3=0.1,
                  control_waveform=0.1,
                  control_amp=0.1,
-                 control_freq=0.1):
+                 control_freq=0.1,
+                 link_shape=0.25):
         self.name = name
         self.parent_name = parent_name
         self.recur = recur
@@ -234,25 +258,46 @@ class URDFLink:
         self.control_freq = control_freq
         self.sibling_ind = 1
 
+        self.link_shape = link_shape
+
     def to_link_element(self, adom):
         link_tag = adom.createElement("link")
         link_tag.setAttribute("name", self.name)
         vis_tag = adom.createElement("visual")
         geom_tag = adom.createElement("geometry")
-        cyl_tag = adom.createElement("cylinder")
-        cyl_tag.setAttribute("length", str(self.link_length))
-        cyl_tag.setAttribute("radius", str(self.link_radius))
 
-        geom_tag.appendChild(cyl_tag)
+        # Add more potential shapes. Shapes and code referenced from reference [4].
+        if self.link_shape <= 0.25:
+            # Link will be a cylinder.
+            shape_tag = adom.createElement("cylinder")
+            # Store shape of cylinder.
+            shape_tag.setAttribute("length", str(self.link_length))
+            shape_tag.setAttribute("radius", str(self.link_radius))
+        elif self.link_shape <= 0.5:
+            # Link will be a box.
+            shape_tag = adom.createElement("box")
+            # Store shape of box.
+            shape_tag.setAttribute("size", f"{self.link_radius * 2} {self.link_radius * 2} {self.link_length}")
+        elif self.link_shape <= 0.75:
+            # Link will be a sphere.
+            shape_tag = adom.createElement("sphere")
+            # Store shape of sphere.
+            shape_tag.setAttribute("radius", str(self.link_radius))
+        else:
+            # Link will be a capsule.
+            shape_tag = adom.createElement("capsule")
+            # Store shape of capsule.
+            shape_tag.setAttribute("length", str(self.link_length))
+            shape_tag.setAttribute("radius", str(self.link_radius))
+
+        geom_tag.appendChild(shape_tag)
         vis_tag.appendChild(geom_tag)
 
         coll_tag = adom.createElement("collision")
         c_geom_tag = adom.createElement("geometry")
-        c_cyl_tag = adom.createElement("cylinder")
-        c_cyl_tag.setAttribute("length", str(self.link_length))
-        c_cyl_tag.setAttribute("radius", str(self.link_radius))
+        c_shape_tag = shape_tag.cloneNode(True)
 
-        c_geom_tag.appendChild(c_cyl_tag)
+        c_geom_tag.appendChild(c_shape_tag)
         coll_tag.appendChild(c_geom_tag)
 
         inertial_tag = adom.createElement("inertial")
