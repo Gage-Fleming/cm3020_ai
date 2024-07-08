@@ -47,6 +47,7 @@ class Creature:
         self.number_of_times_touching_mountain = 0
         self.cid = None
         self.size = None
+        self.failed = False
 
     def get_flat_links(self):
         if self.flat_links is None:
@@ -132,34 +133,6 @@ class Creature:
         if len(contact_points) > 0:
             self.number_of_times_touching_mountain += 1
 
-    def get_fitness(self):
-        fitness = 0
-
-        # Reward for getting closer to mountaintop
-        distance_reward = 200 / self.closest_distance_to_mountain_top
-        fitness += distance_reward
-
-        # Reward for vertical progress
-        fitness += (self.last_position[2] - self.start_position[2]) * 2
-
-        # Reward for overall movement.
-        fitness += self.get_distance_travelled() * 2
-
-        # Penalty for size of creature to discourage larger creatures
-        if self.size > 1.5:
-            fitness -= self.size * 10
-        else:
-            fitness -= self.size
-
-        # Reward for touching the mountain
-        fitness += self.number_of_times_touching_mountain * 0.1
-
-        # Check to ensure fitness is not negative.
-        if fitness <= 0:
-            fitness = 0.5
-
-        return fitness
-
     def get_closest_distance_to_mountain(self):
         return self.closest_distance_to_mountain_top
 
@@ -167,8 +140,7 @@ class Creature:
         return self.number_of_times_touching_mountain
 
     def fail_creature(self):
-        self.closest_distance_to_mountain_top = 100
-        self.number_of_times_touching_mountain = 0
+        self.failed = True
 
     def set_cid(self, cid):
         self.cid = cid
@@ -180,3 +152,70 @@ class Creature:
 
     def get_size(self):
         return self.size
+
+    def get_fitness(self, sim_time):
+        fitness = 0
+
+        # If creature failed at any point return 0.
+        if self.failed:
+            return fitness
+
+        # Reward for getting closer to mountaintop limited to a max of 100.
+        fitness += self.distance_fitness_helper()
+
+        # Reward for vertical progress to a max of 50.
+        fitness += self.vertical_distance_fitnees_helper()
+
+        # Reward for distance travelled progress to a max of 50.
+        fitness += self.distance_travelled_fitness_helper()
+
+        # Penalty for size of creature to discourage larger creatures to a max of 25.
+        fitness -= self.size_fitness_helper()
+
+        # Reward for touching the mountain during simulation to a max of 50.
+        fitness += self.touching_mountain_fitness_helper(sim_time)
+
+        return max(fitness, 0)
+
+    def distance_fitness_helper(self):
+        # Fail creature.
+        if self.failed:
+            return 0
+
+        return min((100 / self.closest_distance_to_mountain_top), 100)
+
+    def size_fitness_helper(self):
+        # Fail creature if size is not set.
+        if self.size is None or self.failed:
+            return 50
+
+        # Define optimal size creature should be sticking around.
+        optimal_size = 1.0
+
+        # Get the difference from the actual size compared to the optimal size.
+        size_difference = abs(self.size - optimal_size)
+        return min(50 * (size_difference / optimal_size), 50)
+
+    def touching_mountain_fitness_helper(self, sim_time):
+        # Fail creature.
+        if self.failed:
+            return 0
+
+        return min((50 * (self.number_of_times_touching_mountain / sim_time)), 50)
+
+    def vertical_distance_fitnees_helper(self):
+        # Fail creature if no position is retrievable.
+        if self.start_position is None or self.last_position is None or self.failed:
+            return 0
+
+        # Get the vertical progress through simulation.
+        vertical_progress = self.last_position[2] - self.start_position[2]
+
+        # Return a ratio of the vertical progress based on 50.
+        return 50 * np.tanh(vertical_progress / 5)
+
+    def distance_travelled_fitness_helper(self):
+        # Fail creature if no position is retrievable.
+        if self.start_position is None or self.last_position is None or self.failed:
+            return 0
+        return 25 * np.tanh(self.get_distance_travelled() / 10)
